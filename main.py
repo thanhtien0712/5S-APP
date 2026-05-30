@@ -72,7 +72,7 @@ try:
     custom_classes_world = default_classes
     
     print("-> YOLO-World sẽ tìm các từ khóa:", custom_classes_world)
-    model_world_x = YOLO("yolov8x-worldv2.pt")
+    model_world_x = YOLO("yolov8s-worldv2.pt")  # Đã hạ cấp xuống bản Small để vừa 512MB RAM của Render Free
     model_world_x.set_classes(custom_classes_world)
     
     print("Sẵn sàng! Tất cả mô hình đã được nạp!")
