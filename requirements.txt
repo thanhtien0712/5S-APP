@@ -1,7 +1,8 @@
 fastapi
 uvicorn
 ultralytics
-opencv-python
+opencv-python-headless
 jinja2
 python-multipart
-openai-clip
+google-generativeai
+aiofiles
