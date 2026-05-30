@@ -1,0 +1,12 @@
+venv/
+__pycache__/
+dataset/
+static/results/
+
+# Security
+api_key.txt
+.env
+
+# Weights / Models (To avoid GitHub 100MB file limit)
+*.pt
+yolov8*.pt

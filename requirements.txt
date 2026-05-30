@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+ultralytics
+opencv-python
+jinja2
+python-multipart
+openai-clip

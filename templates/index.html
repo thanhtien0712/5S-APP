@@ -1,0 +1,395 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5S Audit System - OpEx AI</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap');
+
+        :root {
+            --bg-color: #050914;
+            --panel-bg: rgba(10, 15, 26, 0.85);
+            --primary: #00f0ff;
+            --primary-glow: 0 0 15px rgba(0, 240, 255, 0.6);
+            --warning: #ffb000;
+            --success: #39ff14;
+            --danger: #ff003c;
+            --text-main: #e0f2fe;
+            --text-muted: #7dd3fc;
+        }
+
+        * { box-sizing: border-box; }
+
+        body { 
+            font-family: 'Rajdhani', sans-serif; 
+            background-color: var(--bg-color); 
+            background-image: 
+                linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+            margin: 0; padding: 0; 
+            color: var(--text-main); 
+            min-height: 100vh;
+        }
+
+        body::before {
+            content: ""; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.15) 2px, rgba(0,0,0,0.15) 4px);
+            pointer-events: none; z-index: 999;
+        }
+
+        .header { 
+            text-align: center; padding: 20px; 
+            background: linear-gradient(180deg, rgba(0, 240, 255, 0.1) 0%, transparent 100%);
+            border-bottom: 2px solid var(--primary);
+            position: sticky; top: 0; z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .header::after {
+            content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 4px;
+            background: repeating-linear-gradient(45deg, var(--primary), var(--primary) 10px, transparent 10px, transparent 20px);
+            opacity: 0.5;
+        }
+
+        h1 { 
+            font-family: 'Orbitron', sans-serif; color: #fff; margin: 0; font-size: 2.2rem;
+            text-transform: uppercase; letter-spacing: 4px; text-shadow: var(--primary-glow);
+        }
+        
+        .header p {
+            font-family: 'Share Tech Mono', monospace; color: var(--warning);
+            margin: 8px 0 0 0; font-size: 1rem; letter-spacing: 2px; text-transform: uppercase;
+        }
+
+        .container { 
+            display: flex; flex-wrap: wrap; gap: 30px; 
+            max-width: 1500px; margin: 40px auto; padding: 0 20px;
+            align-items: flex-start;
+        }
+
+        .panel {
+            background: var(--panel-bg);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            box-shadow: 0 0 20px rgba(0,0,0,0.8), inset 0 0 20px rgba(0, 240, 255, 0.05);
+            padding: 25px; position: relative;
+            clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+        }
+
+        .panel::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 30px; height: 30px;
+            border-top: 3px solid var(--primary); border-left: 3px solid var(--primary);
+        }
+        .panel::after {
+            content: ''; position: absolute; bottom: 0; right: 0; width: 30px; height: 30px;
+            border-bottom: 3px solid var(--primary); border-right: 3px solid var(--primary);
+        }
+
+        .upload-container { flex: 1; min-width: 320px; }
+        .evaluation-container { flex: 1.5; min-width: 320px; display: none; animation: glitchFade 0.5s ease forwards; }
+
+        @keyframes glitchFade {
+            0% { opacity: 0; transform: scale(0.98) translateX(-10px); filter: hue-rotate(90deg); }
+            50% { opacity: 0.5; transform: scale(1.01) translateX(5px); filter: hue-rotate(-90deg); }
+            100% { opacity: 1; transform: scale(1) translateX(0); filter: hue-rotate(0deg); }
+        }
+
+        h3.panel-title {
+            font-family: 'Orbitron', sans-serif; color: var(--primary);
+            margin: -10px -10px 20px -10px; padding: 10px 20px;
+            background: linear-gradient(90deg, rgba(0, 240, 255, 0.2), transparent);
+            border-left: 4px solid var(--primary);
+            font-size: 1.3rem; letter-spacing: 2px; text-transform: uppercase;
+        }
+
+        .upload-zone {
+            border: 2px dashed rgba(0, 240, 255, 0.4);
+            background: repeating-linear-gradient(45deg, rgba(0,0,0,0.2), rgba(0,0,0,0.2) 10px, rgba(0, 240, 255, 0.02) 10px, rgba(0, 240, 255, 0.02) 20px);
+            padding: 50px 20px; text-align: center; transition: all 0.3s;
+            position: relative; margin-bottom: 25px; cursor: pointer;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        }
+        .upload-zone:hover { border-color: var(--primary); background-color: rgba(0, 240, 255, 0.1); box-shadow: inset 0 0 30px rgba(0, 240, 255, 0.2); }
+        
+        input[type="file"] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+
+        .upload-icon { font-size: 50px; margin-bottom: 15px; display: block; filter: drop-shadow(0 0 8px var(--primary)); }
+        .upload-text { color: #fff; font-size: 18px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+        .upload-subtext { font-family: 'Share Tech Mono', monospace; color: var(--text-muted); font-size: 13px; margin-top: 8px; display: block; }
+
+        button { 
+            padding: 16px 20px; background: rgba(0, 240, 255, 0.1); color: var(--primary); border: 1px solid var(--primary); 
+            cursor: pointer; font-size: 18px; width: 100%; font-family: 'Orbitron', sans-serif; font-weight: bold; 
+            letter-spacing: 3px; transition: all 0.2s; text-transform: uppercase; box-shadow: inset 0 0 15px rgba(0, 240, 255, 0.15);
+            clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
+        }
+        button:hover { background-color: var(--primary); color: #000; box-shadow: 0 0 25px rgba(0, 240, 255, 0.8); text-shadow: none; }
+
+        /* HUD LOADER STYLES */
+        .galaxy-loader {
+            display: none; margin-top: 25px; padding: 20px; background: #000;
+            border: 1px solid var(--primary); box-shadow: inset 0 0 20px rgba(0, 240, 255, 0.2); position: relative;
+        }
+        .loader-text {
+            font-family: 'Share Tech Mono', monospace; color: var(--primary); margin: 0 0 15px 0;
+            font-size: 16px; letter-spacing: 2px; text-shadow: var(--primary-glow);
+        }
+        .progress-bar { width: 100%; height: 8px; background: #111; border: 1px solid rgba(0, 240, 255, 0.3); margin-bottom: 20px; }
+        .progress-fill { height: 100%; width: 0%; background: var(--primary); box-shadow: 0 0 10px var(--primary); transition: width 0.3s ease; }
+        
+        .step-list { list-style: none; padding: 0; margin: 0; font-family: 'Share Tech Mono', monospace; font-size: 14px; color: rgba(255,255,255,0.4); }
+        .step-item { margin-bottom: 12px; display: flex; align-items: center; }
+        .step-item::before { content: "[ ]"; margin-right: 12px; color: rgba(255,255,255,0.4); }
+        .step-item.active { color: var(--warning); text-shadow: 0 0 5px var(--warning); }
+        .step-item.active::before { content: "[~]"; color: var(--warning); animation: blink 0.5s infinite; }
+        .step-item.done { color: var(--primary); }
+        .step-item.done::before { content: "[OK]"; color: var(--primary); text-shadow: var(--primary-glow); }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        .result-container { margin-top: 25px; text-align: center; }
+        img { 
+            width: 100%; height: auto; display: none; border: 2px solid var(--primary);
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+            clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
+        }
+        
+        .image-preview-container {
+            position: relative; display: none; margin: 25px auto 0 auto; border: 2px solid var(--primary);
+            box-shadow: var(--primary-glow);
+            clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
+        }
+        .preview-img { display: block; width: 100%; height: auto; }
+        .scanner-line {
+            position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: #fff;
+            box-shadow: 0px 0px 15px 5px var(--primary), 0px 0px 30px 10px var(--primary);
+            animation: scan-vertical 1.5s infinite linear alternate; z-index: 10;
+        }
+        @keyframes scan-vertical { 0% { top: 0%; } 100% { top: calc(100% - 3px); } }
+
+        /* REPORT BOXES */
+        .report-content h2.score-heading {
+            font-family: 'Orbitron', sans-serif; font-size: 3rem; margin: 10px 0 30px 0;
+            color: var(--primary); text-align: center; text-shadow: var(--primary-glow); letter-spacing: 2px;
+        }
+        
+        .box-good {
+            background-color: rgba(57, 255, 20, 0.05); border: 1px solid rgba(57, 255, 20, 0.3);
+            border-left: 5px solid var(--success); padding: 20px; margin-bottom: 25px;
+        }
+        .box-good h3 { 
+            color: var(--success); margin-top: 0; font-family: 'Orbitron', sans-serif; font-size: 1.2rem; 
+            text-transform: uppercase; letter-spacing: 1px; text-shadow: 0 0 10px rgba(57, 255, 20, 0.5);
+        }
+        
+        .box-bad {
+            background-color: rgba(255, 0, 60, 0.05); border: 1px solid rgba(255, 0, 60, 0.3);
+            border-left: 5px solid var(--danger); padding: 20px; margin-bottom: 25px;
+            background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255, 0, 60, 0.04) 10px, rgba(255, 0, 60, 0.04) 20px);
+        }
+        .box-bad h3 { 
+            color: var(--danger); margin-top: 0; font-family: 'Orbitron', sans-serif; font-size: 1.2rem; 
+            text-transform: uppercase; letter-spacing: 1px; text-shadow: 0 0 10px rgba(255, 0, 60, 0.5);
+        }
+
+        .report-content ul { padding-left: 20px; margin: 0; color: #fff; font-size: 1.1rem; }
+        .report-content li { margin-bottom: 12px; line-height: 1.5; }
+
+        #systemMessage {
+            color: var(--success); font-family: 'Share Tech Mono', monospace; font-size: 1.1rem;
+            text-align: center; margin-top: 20px; text-shadow: 0 0 10px var(--success); text-transform: uppercase;
+        }
+
+        @media (max-width: 768px) {
+            .container { flex-direction: column; padding: 0 10px; margin: 20px auto; }
+            h1 { font-size: 1.6rem; }
+            .header p { font-size: 0.8rem; }
+            .report-content h2.score-heading { font-size: 2.2rem; }
+            .upload-zone { padding: 30px 15px; }
+            .upload-icon { font-size: 40px; }
+            .upload-text { font-size: 15px; }
+            button { font-size: 16px; padding: 14px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>OpEx Vision AI</h1>
+        <p>Automated 5S Compliance System</p>
+    </div>
+    
+    <div class="container">
+        <div class="panel upload-container">
+            <h3 class="panel-title">📷 DATA ACQUISITION</h3>
+            <form id="uploadForm">
+                <div style="display: flex; gap: 15px; margin-bottom: 25px;">
+                    <button type="button" onclick="document.getElementById('imageInput').click()" style="flex: 1; padding: 15px; font-size: 14px; border-style: dashed; display: flex; flex-direction: column; align-items: center;">
+                        <span style="font-size: 32px; display: block; margin-bottom: 8px; filter: drop-shadow(0 0 5px var(--primary));">📂</span> BROWSE FILE
+                    </button>
+                    <button type="button" onclick="document.getElementById('cameraInput').click()" style="flex: 1; padding: 15px; font-size: 14px; border-style: dashed; display: flex; flex-direction: column; align-items: center;">
+                        <span style="font-size: 32px; display: block; margin-bottom: 8px; filter: drop-shadow(0 0 5px var(--primary));">📸</span> TAKE PHOTO
+                    </button>
+                </div>
+                <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="handleFileSelect(this)">
+                <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;" onchange="handleFileSelect(this)">
+            </form>
+            
+            <div class="galaxy-loader" id="galaxyLoader">
+                <div class="loader-text" id="loaderText">SYSTEM INITIALIZING...</div>
+                <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+                <ul class="step-list">
+                    <li id="step1" class="step-item">Spatial Scanning & Vector Extraction</li>
+                    <li id="step2" class="step-item">Data Normalization & Fusion</li>
+                    <li id="step3" class="step-item">5S Standard Matching & Scoring</li>
+                </ul>
+            </div>
+
+            <p id="systemMessage"></p>
+            
+            <div class="image-preview-container" id="previewContainer">
+                <img id="previewImg" class="preview-img">
+                <div class="scanner-line"></div>
+            </div>
+
+            <div class="result-container">
+                <img id="resultImage" alt="Analysis Result">
+                <button type="button" id="btnScanAgain" style="display: none; margin-top: 20px; background: rgba(57, 255, 20, 0.2); border-color: var(--success); color: var(--success); box-shadow: 0 0 15px rgba(57,255,20,0.4);" onclick="resetSystem()">🔄 SCAN ANOTHER WORKSPACE</button>
+            </div>
+        </div>
+        
+        <div class="panel evaluation-container" id="evaluationContainer">
+            <h3 class="panel-title">📋 AUDIT REPORT</h3>
+            <div id="reportContent" class="report-content"></div>
+        </div>
+    </div>
+    <script>
+        let stepTimeouts = [];
+        let selectedFile = null;
+
+        function handleFileSelect(input) {
+            if (input.files && input.files[0]) {
+                selectedFile = input.files[0];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById("previewImg").src = e.target.result;
+                    document.getElementById("previewContainer").style.display = "block";
+                    document.getElementById("resultImage").style.display = "none";
+                    document.getElementById("evaluationContainer").style.display = "none";
+                    document.getElementById("btnScanAgain").style.display = "none";
+                    document.getElementById("systemMessage").innerText = "";
+                    submitForm(); // Bắt đầu scan ngay lập tức
+                }
+                reader.readAsDataURL(selectedFile);
+            }
+        }
+
+        function resetSystem() {
+            document.getElementById("uploadForm").reset();
+            selectedFile = null;
+            document.getElementById("resultImage").style.display = "none";
+            document.getElementById("evaluationContainer").style.display = "none";
+            document.getElementById("systemMessage").innerText = "";
+            document.getElementById("btnScanAgain").style.display = "none";
+            document.getElementById("previewContainer").style.display = "none";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        async function submitForm() {
+            if (!selectedFile) { alert("ERROR: Please select an image first!"); return; }
+
+            const file = selectedFile;
+
+            const loader = document.getElementById("galaxyLoader");
+            const loaderText = document.getElementById("loaderText");
+            const progressFill = document.getElementById("progressFill");
+            const s1 = document.getElementById("step1");
+            const s2 = document.getElementById("step2");
+            const s3 = document.getElementById("step3");
+            
+            loader.style.display = "block";
+            progressFill.style.width = "0%";
+            [s1, s2, s3].forEach(s => s.className = "step-item");
+            document.getElementById("systemMessage").innerText = "";
+            document.getElementById("reportContent").innerHTML = "";
+
+            // Ngay lập tức đánh dấu bước 1 là đang xử lý
+            s1.className = "step-item active";
+
+            try {
+                // STEP 1
+                loaderText.innerText = "SCANNING WORKSPACE (YOLOv8)...";
+                progressFill.style.width = "25%";
+                
+                const formData = new FormData();
+                formData.append("file", file);
+                
+                const res1 = await fetch("/api/step1_yolo", { method: "POST", body: formData });
+                if (!res1.ok) {
+                    throw new Error(`HTTP error! status: ${res1.status}`);
+                }
+                const data1 = await res1.json();
+                if (data1.error) throw new Error(data1.error);
+                
+                document.getElementById("previewImg").src = data1.image_url;
+                
+                // STEP 2
+                s1.className = "step-item done";
+                s2.classList.add("active");
+                loaderText.innerText = "NORMALIZING & MERGING DATA...";
+                progressFill.style.width = "60%";
+                
+                const res2 = await fetch("/api/step2_clean", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ safe_filename: data1.safe_filename, raw_objects: data1.raw_objects })
+                });
+                if (!res2.ok) {
+                    throw new Error(`HTTP error! status: ${res2.status}`);
+                }
+                const data2 = await res2.json();
+                if (data2.error) throw new Error(data2.error);
+                
+                document.getElementById("previewContainer").style.display = "none";
+                const resultImg = document.getElementById("resultImage");
+                resultImg.src = data2.image_url;
+                resultImg.style.display = "inline-block";
+                
+                // STEP 3
+                s2.className = "step-item done";
+                s3.classList.add("active");
+                loaderText.innerText = "GENERATING 5S REPORT...";
+                progressFill.style.width = "85%";
+                
+                const res3 = await fetch("/api/step3_report", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ detected_objects: data2.detected_objects })
+                });
+                if (!res3.ok) {
+                    throw new Error(`HTTP error! status: ${res3.status}`);
+                }
+                const data3 = await res3.json();
+                if (data3.error) throw new Error(data3.error);
+                
+                s3.className = "step-item done";
+                progressFill.style.width = "100%";
+                loaderText.innerText = "AUDIT COMPLETE!";
+                
+                document.getElementById("reportContent").innerHTML = data3.report_5s;
+                document.getElementById("evaluationContainer").style.display = "block";
+                
+                setTimeout(() => { 
+                    loader.style.display = "none"; 
+                    document.getElementById("btnScanAgain").style.display = "block";
+                }, 2000);
+                
+            } catch (error) {
+                console.error(error);
+                alert("SYSTEM ERROR: " + error.message);
+                loader.style.display = "none";
+                document.getElementById("btnScanAgain").style.display = "block";
+            }
+        }
+    </script>
+</body>
+</html>
