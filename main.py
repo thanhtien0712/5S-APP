@@ -34,11 +34,12 @@ class Step3Request(BaseModel):
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
+# MAKE SURE DIRECTORIES EXIST BEFORE MOUNTING
 DATASET_IMG_DIR = "dataset/images/train"
 os.makedirs(DATASET_IMG_DIR, exist_ok=True)
 os.makedirs("static/results", exist_ok=True)
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # CẤU HÌNH GEMINI API
 gemini_available = False
